@@ -1,0 +1,314 @@
+-- -----------------------------------------------------
+-- Tabela `Endereco`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS Endereco (
+  idEndereco  INT         NOT NULL AUTO_INCREMENT,
+  quadra      VARCHAR(45) NOT NULL,
+  alameda     VARCHAR(45) NOT NULL,
+  lote        VARCHAR(45) NOT NULL,
+  complemento VARCHAR(45) NOT NULL,
+  PRIMARY KEY (idEndereco)
+);
+-- -----------------------------------------------------
+-- Tabela Mercado
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS Mercado (
+  cnpj                INT          NOT NULL AUTO_INCREMENT,
+  nomeMercado         VARCHAR(45)  NOT NULL,
+  emailMercado        VARCHAR(100) NOT NULL,
+  telefoneMercado     VARCHAR(45)  NOT NULL,
+  Endereco_idEndereco INT          NOT NULL,
+  PRIMARY KEY (cnpj),
+  FOREIGN KEY (Endereco_idEndereco)
+  REFERENCES Endereco (idEndereco)
+);
+-- -----------------------------------------------------
+-- Tabela Cliente
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS Cliente (
+  idCliente       INT         NOT NULL AUTO_INCREMENT,
+  nomeCliete      VARCHAR(45) NOT NULL,
+  emailCliente    VARCHAR(45) NOT NULL,
+  telefoneCliente VARCHAR(45) NOT NULL,
+  PRIMARY KEY (idCliente)
+);
+-- -----------------------------------------------------
+-- Tabela Drone
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS Drone
+(
+    idDrone INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    status VARCHAR(45) DEFAULT 1 NOT NULL,
+    capacidadeCarga DOUBLE NOT NULL
+);
+
+-- -----------------------------------------------------
+-- Tabela Tracking
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS Tracking (
+  idTracking    INT          NOT NULL AUTO_INCREMENT,
+  localização   VARCHAR(100) NOT NULL,
+  descrição     VARCHAR(100) NOT NULL,
+  Drone_idDrone INT          NOT NULL,
+  PRIMARY KEY (idTracking, Drone_idDrone),
+  FOREIGN KEY (Drone_idDrone)
+  REFERENCES Drone (idDrone)
+);
+-- -----------------------------------------------------
+-- Tabela Pedido
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS Pedido (
+  idPedido            INT         NOT NULL AUTO_INCREMENT,
+  enderecoPagamento   VARCHAR(45) NOT NULL,
+  enderecoEntrega     INT         NOT NULL,
+  dataPedido          DATE        NOT NULL,
+  horaPedido          TIME        NOT NULL,
+  valorPedido         DOUBLE      NOT NULL,
+  Cliente_idCliente   INT         NOT NULL,
+  Tracking_idTracking INT         NOT NULL,
+  produtos_pedido     INT         NOT NULL,
+  qtd_produtos        INT         NOT NULL,
+  PRIMARY KEY (idPedido, Cliente_idCliente, Tracking_idTracking),
+  FOREIGN KEY (Cliente_idCliente)
+  REFERENCES Cliente (idCliente),
+  FOREIGN KEY (Tracking_idTracking)
+  REFERENCES Tracking (idTracking),
+  FOREIGN KEY (enderecoEntrega)
+  REFERENCES Endereco (idEndereco),
+  FOREIGN KEY (produtos_pedido)
+  REFERENCES Produto (idProduto)
+);
+-- -----------------------------------------------------
+-- Tabela Categoria
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS Categoria (
+  idCategoria   INT         NOT NULL AUTO_INCREMENT,
+  nomeCategoria VARCHAR(45) NOT NULL,
+  PRIMARY KEY (idCategoria)
+);
+-- -----------------------------------------------------
+-- Tabela Produto
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS Produto (
+  idProduto             INT         NOT NULL AUTO_INCREMENT,
+  nomeProduto           VARCHAR(45) NOT NULL,
+  precoProduto          VARCHAR(45) NOT NULL,
+  qtdProduto            INT         NOT NULL,
+  Categoria_idCategoria INT         NOT NULL,
+  PRIMARY KEY (idProduto, Categoria_idCategoria),
+  FOREIGN KEY (Categoria_idCategoria)
+  REFERENCES Categoria (idCategoria)
+);
+-- -----------------------------------------------------
+-- Tabela Cliente_Endereco
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS Cliente_Endereco (
+  Cliente_idCliente   INT NOT NULL,
+  Endereco_idEndereco INT NOT NULL,
+  PRIMARY KEY (Cliente_idCliente, Endereco_idEndereco),
+  FOREIGN KEY (Cliente_idCliente)
+  REFERENCES Cliente (idCliente),
+  FOREIGN KEY (Endereco_idEndereco)
+  REFERENCES Endereco (idEndereco)
+);
+-- -----------------------------------------------------
+-- Tabela FormaPagamento
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS FormaPagamento (
+  idFormaPagamento  INT         NOT NULL,
+  tipoPagamento     VARCHAR(45) NOT NULL,
+  parcelas          INT(12)     NOT NULL DEFAULT 0,
+  Cliente_idCliente INT         NOT NULL,
+  PRIMARY KEY (`idFormaPagamento`, `Cliente_idCliente`),
+  FOREIGN KEY (Cliente_idCliente)
+  REFERENCES Cliente (idCliente)
+);
+-- -----------------------------------------------------
+-- Tabela ItensPedidos
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS ItensPedidos (
+  Pedido_idPedido          INT    NOT NULL,
+  Pedido_Cliente_idCliente INT    NOT NULL,
+  Mercado_cnpj             INT    NOT NULL,
+  qntItens                 INT    NOT NULL,
+  valorTotal               DOUBLE NOT NULL,
+  PRIMARY KEY (Pedido_idPedido, Pedido_Cliente_idCliente, Mercado_cnpj),
+  FOREIGN KEY (Pedido_idPedido, Pedido_Cliente_idCliente)
+  REFERENCES Pedido (idPedido, Cliente_idCliente),
+  FOREIGN KEY (Mercado_cnpj)
+  REFERENCES Mercado (cnpj)
+);
+
+-- -----------------------------------------------------
+-- Tabela Mercado_Produto
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS Mercado_Produto (
+  Mercado_cnpj      INT NOT NULL,
+  Produto_idProduto INT NOT NULL,
+  PRIMARY KEY (Mercado_cnpj, Produto_idProduto),
+  FOREIGN KEY (Mercado_cnpj)
+  REFERENCES Mercado (cnpj),
+  FOREIGN KEY (Produto_idProduto)
+  REFERENCES Produto (idProduto)
+);
+
+-- Procedures
+DELIMITER $$
+CREATE PROCEDURE InserirEndereco(
+  IN quadra_I      varchar(45),
+  IN alameda_I     varchar(45),
+  IN lote_I        varchar(45),
+  IN complemento_I varchar(45))
+  BEGIN
+    INSERT INTO Endereco (quadra, alameda, lote, complemento) VALUES (quadra_I, alameda_I, lote_I, complemento_I);
+  END $$
+DELIMITER ;
+DELIMITER $$
+CREATE PROCEDURE InserirMercado(
+  IN nomeMercado_I     varchar(50),
+  IN emailMercado_I    varchar(45),
+  IN telefoneMercado_I varchar(45),
+  IN idEndereco_I      int)
+  BEGIN
+    INSERT INTO Mercado (nomeMercado, emailMercado, telefoneMercado, Endereco_idEndereco)
+    VALUES (nomeMercado_I, emailMercado_I, telefoneMercado_I, idEndereco_I);
+  END $$
+DELIMITER ;
+DELIMITER $$
+CREATE procedure InserirCliente(
+  IN nomeCliente_I     varchar(45),
+  IN emailCliente_I    varchar(45),
+  IN telefoneCliente_I varchar(45))
+  BEGIN
+    INSERT INTO Cliente (nomeCliete, emailCliente, telefoneCliente)
+    VALUES (nomeCliente_I, emailCliente_I, telefoneCliente_I);
+  END $$
+DELIMITER ;
+DELIMITER $$
+CREATE PROCEDURE InsererirDrone(
+  IN statusDrone_I     varchar(45),
+  IN capacidadeDrone_I double)
+  BEGIN
+    INSERT INTO Drone (status, capacidadeCarga) VALUES (statusDrone_I, capacidadeDrone_I);
+  END $$
+DELIMITER ;
+DELIMITER $$
+CREATE PROCEDURE InserirTracking(
+  IN localizacao_I varchar(100),
+  IN descricao_I   varchar(100),
+  IN idDrone_I     int)
+  BEGIN
+    INSERT INTO Tracking (localização, descrição, Drone_idDrone) VALUES (localizacao_I, descricao_I, idDrone_I);
+  END $$
+DELIMITER ;
+DELIMITER $$
+CREATE PROCEDURE InserirPedido(
+  IN enderecoPegamento_I varchar(45),
+  IN enderecoEntrega_I   varchar(45),
+  IN dataPedido_I        date, -- AAAA-MM-DD HH:MM:SS
+  IN horaPedido_I        time,
+  IN idCliente_I         int,
+  IN idTraking_I         int)
+  BEGIN
+    INSERT INTO Pedido (enderecoPagamento, enderecoEntrega, dataPedido, horaPedido, Cliente_idCliente, Tracking_idTracking)
+    VALUES (enderecoEntrega_I, enderecoEntrega_I, dataPedido_I, horaPedido_I, idCliente_I, idTraking_I);
+  END $$
+DELIMITER ;
+DELIMITER $$
+CREATE PROCEDURE InserirCategoria(
+  IN nomeCategoria_I varchar(45))
+  BEGIN
+    INSERT INTO Categoria (nomeCategoria) VALUES (nomeCategoria_I);
+  END $$
+DELIMITER ;
+DELIMITER $$
+CREATE PROCEDURE InserirProduto(
+  IN nomeProdutp_I  varchar(45),
+  IN precoProduto_I varchar(45),
+  IN qtdProduto_I   int,
+  IN idCategoria_I  int)
+  BEGIN
+    INSERT INTO Produto (nomeProduto, precoProduto, qtdProduto, Categoria_idCategoria)
+    VALUES (nomeProdutp_I, precoProduto_I, qtdProduto_I, idCategoria_I);
+  END $$
+DELIMITER ;
+DELIMITER $$
+CREATE PROCEDURE InserirClienteEndereco(
+  IN idCliente_I  int,
+  IN idEndereco_I int)
+  BEGIN
+    INSERT INTO Cliente_Endereco (Cliente_idCliente, Endereco_idEndereco) VALUES (idCliente_I, idEndereco_I);
+  END $$
+DELIMITER ;
+DELIMITER $$
+CREATE PROCEDURE InnserirFormaPagamento(
+  IN idFormaPagamento_I int,
+  IN tipoPagaento_I     varchar(45),
+  IN parcelas_I         int(12),
+  IN idCliente_I        int)
+  BEGIN
+    INSERT INTO FormaPagamento (idFormaPagamento, tipoPagamento, parcelas, Cliente_idCliente)
+    VALUES (idFormaPagamento_I, tipoPagaento_I, parcelas_I, idCliente_I);
+  END $$
+DELIMITER ;
+DELIMITER $$
+CREATE PROCEDURE InserirItensPedidos(
+  IN idItensPedidos_I int,
+  IN idCliente_I      int,
+  IN cnpjMercado_I    int,
+  IN qtdItens_I       int,
+  IN valorTotal_I     double)
+  BEGIN
+    INSERT INTO ItensPedidos (Pedido_idPedido, Pedido_Cliente_idCliente, Mercado_cnpj, qntItens, valorTotal)
+    VALUES (idItensPedidos_I, idCliente_I, cnpjMercado_I, qtdItens_I, valorTotal_I);
+  END $$
+DELIMITER ;
+DELIMITER $$
+CREATE PROCEDURE InsserirMercadoProduto(
+  IN cnpjMercado_I int,
+  IN idProduto_I   int)
+  BEGIN
+    INSERT INTO Mercado_Produto (Mercado_cnpj, Produto_idProduto) VALUES (cnpjMercado_I, idProduto_I);
+  END $$
+DELIMITER ;
+
+-- Views
+CREATE VIEW PedidoClienteDrone
+  AS
+    SELECT
+      idCliente,
+      nomeCliete,
+      idPedido,
+      idDrone
+    FROM Cliente c INNER JOIN Pedido p ON c.idCliente = p.Cliente_idCliente
+      INNER JOIN Tracking t ON p.Tracking_idTracking = t.idTracking
+      INNER JOIN Drone d ON t.Drone_idDrone = d.idDrone;
+CREATE VIEW StatusDrone
+  AS
+    SELECT status
+    FROM Drone;
+CREATE VIEW PedidoCliente
+  AS
+    SELECT
+      idCliente,
+      nomeCliete,
+      COUNT(idPedido)
+    FROM Cliente c INNER JOIN Pedido p ON c.idCliente = p.Cliente_idCliente;
+
+-- -Trigger
+DELIMITER $$
+CREATE TRIGGER Desconto
+  BEFORE INSERT
+  ON Pedido
+  FOR EACH ROW
+  BEGIN
+    IF qtd_produtos > 10
+    THEN
+      SET NEW.valorPedido = valorPedido - 0.15;
+    ELSE
+      SET valorPedido = valorPedido;
+    END IF $$
+  END $$
+DELIMITER ;
+
+
