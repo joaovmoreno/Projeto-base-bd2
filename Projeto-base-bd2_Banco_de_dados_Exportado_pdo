@@ -37,9 +37,9 @@ CREATE TABLE IF NOT EXISTS Cliente (
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS Drone
 (
-    idDrone INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    status VARCHAR(45) DEFAULT 1 NOT NULL,
-    capacidadeCarga DOUBLE NOT NULL
+  idDrone         INT PRIMARY KEY       NOT NULL AUTO_INCREMENT,
+  status          VARCHAR(45) DEFAULT 1 NOT NULL,
+  capacidadeCarga DOUBLE                NOT NULL
 );
 
 -- -----------------------------------------------------
@@ -151,7 +151,14 @@ CREATE TABLE IF NOT EXISTS Mercado_Produto (
   FOREIGN KEY (Produto_idProduto)
   REFERENCES Produto (idProduto)
 );
+CREATE TABLE IF NOT EXISTS Admin (
+  idAdmin INT         NOT NULL AUTO_INCREMENT,
+  nome    VARCHAR(50) NOT NULL,
+  user    VARCHAR(50) NOT NULL,
+  pw      VARCHAR(20) NOT NULL,
 
+  PRIMARY KEY (idAdmin)
+);
 -- Procedures
 DELIMITER $$
 CREATE PROCEDURE InserirEndereco(
